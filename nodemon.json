@@ -1,9 +1,11 @@
 {
-    "watch": ["server"],
-    "ext": "js",
-    "ignore": ["*.test.js"],
-    "delay": "3",
-    "execMap": {
-    }
-  }
-  
+  "watch": [
+    "index"
+  ],
+  "ext": "js",
+  "ignore": [
+    "*.test.js"
+  ],
+  "delay": "3",
+  "execMap": {}
+}
