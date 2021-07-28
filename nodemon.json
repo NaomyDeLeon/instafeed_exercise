@@ -1,0 +1,11 @@
+{
+  "watch": [
+    "index"
+  ],
+  "ext": "js",
+  "ignore": [
+    "*.test.js"
+  ],
+  "delay": "3",
+  "execMap": {}
+}
