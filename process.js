@@ -34,7 +34,7 @@ function writeOnFile(fileName, content) {
 
 async function validationHandler(articleJSON) {
     console.info('Starting validation with manual handler');
-    const articleIsValid = await JSONvalidator.validate(
+    const articleIsValid = await JSONvalidator.validateManually(
         articleJSON,
         schemaRules.manual
     );
