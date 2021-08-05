@@ -1,29 +1,26 @@
-const yup = async (jsonObject, jsonRules) => {
+const yup = async (object, rules) => {
     const yupConfig = { abortEarly: false };
-    const result = await jsonRules
-        .validate(jsonObject, yupConfig)
-        .catch((err) => err);
+    const result = await rules.validate(object, yupConfig).catch((err) => err);
     if (result.errors) return result.errors;
     return undefined;
 };
 
-const manually = async (jsonObject, jsonRules) => {
+const manually = async (object, rules) => {
     const result = await new Promise((resolve) => {
         const errors = [];
-        Object.keys(jsonRules).forEach((jsonKey) => {
-            let validationResult;
-            const { rule } = jsonRules[jsonKey];
-            const { dependencyRule } = jsonRules[jsonKey];
-            const value = jsonObject[jsonKey];
+        Object.keys(rules).forEach((jsonKey) => {
+            const { rule } = rules[jsonKey];
+            const { dependencyRule } = rules[jsonKey];
+            const value = object[jsonKey];
             if (rule) {
-                validationResult = rule(value);
+                const validationResult = rule(value);
                 if (validationResult !== null) errors.push(validationResult);
             }
             if (dependencyRule) {
-                const { dependencyField } = jsonRules[jsonKey];
-                validationResult = dependencyRule(
+                const { dependencyField } = rules[jsonKey];
+                const validationResult = dependencyRule(
                     value,
-                    jsonObject[dependencyField]
+                    object[dependencyField]
                 );
                 if (validationResult !== null) errors.push(validationResult);
             }
@@ -33,18 +30,19 @@ const manually = async (jsonObject, jsonRules) => {
     return result;
 };
 
-const evaluateResult = (result) => {
-    if (result && result.length > 0) {
-        console.error('Validation failed', result);
+const evaluateResult = (errors) => {
+    if (errors && errors.length > 0) {
+        console.error('Validation failed', errors);
         return false;
     }
     console.info('Validation passed');
     return true;
 };
-const validate = async (jsonObject, jsonRules, validator) => {
+
+const validate = async (object, rules, validator) => {
     try {
-        const validationResult = await validator(jsonObject, jsonRules);
-        const result = evaluateResult(validationResult);
+        const errors = await validator(object, rules);
+        const result = evaluateResult(errors);
         return result;
     } catch (err) {
         console.error(err);
