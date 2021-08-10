@@ -37,20 +37,20 @@ const writeOnFile = async (fileName, content, validatorName) => {
 
 const validationHandler = async (articleJSON, filename) => {
     console.info(`Starting validation with manual handler - file ${filename}`);
-    const articleIsValid = await JSONvalidator.validateManually(
+    const result = await JSONvalidator.validateManually(
         articleJSON,
         schemaRules.manual
     );
-    return articleIsValid;
+    return result;
 };
 
 const yupValidationHandler = async (articleJSON, filename) => {
     console.info(`Starting validation with yup handler - file ${filename}`);
-    const articleIsValid = await JSONvalidator.validateWithYup(
+    const result = await JSONvalidator.validateWithYup(
         articleJSON,
         schemaRules.yup
     );
-    return articleIsValid;
+    return result;
 };
 
 const configureParallel = (files, validator) => {
@@ -62,8 +62,8 @@ const configureParallel = (files, validator) => {
                 .readFile(`${folderPath}/${file}`)
                 .then(async (fileContent) => {
                     const articleJson = JSON.parse(fileContent);
-                    const isValid = await validator(articleJson, file);
-                    callback(null, { isValid, articleJson });
+                    const result = await validator(articleJson, file);
+                    callback(null, { isValid: result.isValid, articleJson });
                 })
                 .catch((err) => console.log(err));
         };
@@ -96,4 +96,8 @@ const validateAll = (validator) => {
         .finally(() => console.log('async process launched'));
 };
 
-validateAll(yupValidationHandler).then(() => validateAll(validationHandler));
+module.exports = {
+    yupValidationHandler,
+    validationHandler,
+    validateAll,
+};

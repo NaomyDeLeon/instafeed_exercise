@@ -1,5 +1,6 @@
 const fs = require('fs');
 const express = require('express');
+const { yupValidationHandler } = require('./process');
 
 const app = express();
 const defaultPort = 8080;
@@ -23,6 +24,17 @@ app.use(express.json());
 app.get(articlesPath, (req, res) => {
     if (dbIsAvailable) res.send(articlesDb);
     else res.send('unavailable retry in few minutes');
+});
+app.post(articlesPath, async (req, res) => {
+    const result = await yupValidationHandler(req.body, 'web');
+    if (result.isValid) {
+        articlesDb.push(req.body);
+        res.status(201);
+        res.send('success');
+    } else {
+        res.status(400);
+        res.send(result.errors);
+    }
 });
 app.get(singleArticlePath, (req, res) => {
     const articleId = req.params.id;
