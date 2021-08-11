@@ -35,7 +35,7 @@ const writeOnFile = async (fileName, content, validatorName) => {
         .catch((err) => console.err(err));
 };
 
-const validationHandler = async (articleJSON, filename) => {
+const articleValidationHandler = async (articleJSON, filename) => {
     console.info(`Starting validation with manual handler - file ${filename}`);
     const result = await JSONvalidator.validateManually(
         articleJSON,
@@ -44,7 +44,7 @@ const validationHandler = async (articleJSON, filename) => {
     return result;
 };
 
-const yupValidationHandler = async (articleJSON, filename) => {
+const articleYupValidationHandler = async (articleJSON, filename) => {
     console.info(`Starting validation with yup handler - file ${filename}`);
     const result = await JSONvalidator.validateWithYup(
         articleJSON,
@@ -97,7 +97,7 @@ const validateAll = (validator) => {
 };
 
 module.exports = {
-    yupValidationHandler,
-    validationHandler,
+    articleYupValidationHandler,
+    articleValidationHandler,
     validateAll,
 };
