@@ -41,9 +41,13 @@ const insert = async (collection, object) => {
                     .db(DATABASE)
                     .collection(collection)
                     .insertOne(object, async (err, res) => {
-                        if (err) throw err;
-                        console.log(res);
-                        resolve(true);
+                        if (err) {
+                            console.log(err);
+                            resolve(false);
+                        } else {
+                            console.log(res);
+                            resolve(true);
+                        }
                     })
             )
     );
@@ -66,9 +70,56 @@ const find = async (collection, filters) => {
     return result;
 };
 
+const remove = async (collection, filters) => {
+    let result = [];
+    result = await execute(
+        () =>
+            new Promise((resolve) =>
+                client
+                    .db(DATABASE)
+                    .collection(collection)
+                    .deleteOne(filters, (err, res) => {
+                        if (err) {
+                            console.log(err);
+                            resolve(false);
+                        } else {
+                            console.log(res);
+                            resolve(true);
+                        }
+                    })
+            )
+    );
+    return result;
+};
+
+const update = async (collection, filters, newValues) => {
+    let result = [];
+    const fieldsToUpdate = { $set: newValues };
+    result = await execute(
+        () =>
+            new Promise((resolve) =>
+                client
+                    .db(DATABASE)
+                    .collection(collection)
+                    .updateOne(filters, fieldsToUpdate, (err, res) => {
+                        if (err) {
+                            console.log(err);
+                            resolve(false);
+                        } else {
+                            console.log(res);
+                            resolve(true);
+                        }
+                    })
+            )
+    );
+    return result;
+};
+
 module.exports = {
     run,
     insert,
     find,
     findAll,
+    remove,
+    update,
 };

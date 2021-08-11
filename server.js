@@ -10,7 +10,7 @@ const articleRouter = require('./articleRouter')(
 );
 
 const app = express();
-const defaultPort = 8080;
+const defaultPort = 8081;
 const articlesPath = '/articles';
 
 app.use(express.json());
