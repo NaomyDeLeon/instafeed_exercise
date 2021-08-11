@@ -29,7 +29,7 @@ const validateKeywords = (value) => {
 const validateAuthor = (value) => {
     if (!valueExist(value)) return 'Author is necessary';
     if (typeof value !== 'string') return 'Author field must be string';
-    if (value.length > 100) return 'Author length must be 100 or lower';
+    if (value.length > 36) return 'Author length must be 100 or lower';
     return null;
 };
 const validateReadMins = (value) => {
@@ -114,7 +114,7 @@ const articleSchemaManualRules = {
 const articleSchemaYUPRules = yup.object().shape({
     id: yup.string().length(36).nullable(false).required(),
     title: yup.string().max(255).nullable(false).required(),
-    author: yup.string().max(100).nullable(false).required(),
+    author: yup.string().length(36).nullable(false).required(),
     keywords: yup.array().min(1).max(3).of(yup.string()),
     readMins: yup.number().positive().integer().min(1).max(20).required(),
     source: yup.string().oneOf(sourceTypes).required(),
