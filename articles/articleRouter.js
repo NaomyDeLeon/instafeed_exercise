@@ -1,109 +1,81 @@
 const rootPath = '';
 const singleArticlePath = '/:id';
 
-module.exports = (injectedRouter, injectedManager, injectedValidator) => {
-    injectedRouter.get(rootPath, async (req, res) => {
-        const articles = await injectedManager.getArticles();
-        if (articles) res.send(articles);
-        else res.send('No records found');
+module.exports = (router, manager, validator) => {
+    router.get(rootPath, async (req, res) => {
+        const articles = await manager.getArticles();
+        res.send(articles);
         res.end();
     });
 
-    injectedRouter.post(rootPath, async (req, res) => {
-        const result = await injectedValidator(req.body, 'web');
-        if (result.isValid) {
-            const created = await injectedManager.createArticle(req.body);
-            if (created.created) {
-                res.status(201);
-                res.send({ msg: 'success' });
-                res.end();
-            } else {
-                res.status(400);
-                res.send(created);
-                res.end();
-            }
-        }
-        res.status(400);
-        res.send(result.errors);
-        res.end();
-    });
-
-    injectedRouter.get(singleArticlePath, async (req, res) => {
+    router.get(singleArticlePath, async (req, res) => {
         const articleId = req.params.id;
-        const article = await injectedManager.findArticle(articleId);
-        if (article) res.send(article);
+        const article = await manager.findArticle(articleId);
+        if (article) res.send(article.data);
         else {
             res.status(404);
-            res.send({ error: 'article not found' });
+            res.send(article);
         }
         res.end();
     });
 
-    injectedRouter.delete(singleArticlePath, async (req, res) => {
-        const articleId = req.params.id;
-        const article = await injectedManager.findArticle(articleId);
-        if (article) {
-            const deleted = await injectedManager.deleteArticle(articleId);
-            if (deleted) {
-                res.status(204);
-                res.send({ msg: 'article deleted', id: articleId });
-            }
+    router.post(rootPath, async (req, res) => {
+        const validation = await validator(req.body, 'web');
+        if (validation.isValid) {
+            const creation = await manager.createArticle(req.body);
+            if (creation.success) res.status(201);
+            else res.status(400);
+            res.send(creation);
         } else {
+            res.status(400);
+            res.send(validation.errors);
+        }
+        res.end();
+    });
+
+    router.delete(singleArticlePath, async (req, res) => {
+        const articleId = req.params.id;
+        const deletion = await manager.deleteArticle(articleId);
+        if (deletion.success) res.status(204);
+        else {
             res.status(404);
-            res.send({ error: 'article not found' });
+            res.send(deletion);
         }
         res.end();
     });
 
-    injectedRouter.put(singleArticlePath, async (req, res) => {
+    router.put(singleArticlePath, async (req, res) => {
         const articleId = req.params.id;
-        const result = await injectedValidator(req.body, 'web');
-        if (result.isValid) {
-            const article = await injectedManager.findArticle(articleId);
-            if (article) {
-                const updated = await injectedManager.updateArticle(
-                    articleId,
-                    req.body
-                );
-                if (updated) {
-                    res.status(200);
-                    res.send({ msg: 'success' });
-                    res.end();
-                }
-            } else {
-                res.status(404);
-                res.send({ error: 'article not found' });
-            }
+        const validation = await validator(req.body, 'web');
+        if (validation.isValid) {
+            const update = await manager.updateArticle(articleId, req.body);
+            if (update.success) res.status(200);
+            else res.status(404);
+            res.send(update);
+        } else {
+            res.status(400);
+            res.send(validation.errors);
         }
-        res.status(400);
-        res.send(result.errors);
         res.end();
     });
 
-    injectedRouter.patch(singleArticlePath, async (req, res) => {
+    router.patch(singleArticlePath, async (req, res) => {
         const articleId = req.params.id;
-        const result = await injectedValidator(req.body, 'web');
-        if (result.isValid) {
-            const article = await injectedManager.findArticle(articleId);
-            if (article) {
-                const updated = await injectedManager.updateArticlePartially(
-                    articleId,
-                    req.body
-                );
-                if (updated) {
-                    res.status(200);
-                    res.send({ msg: 'success' });
-                    res.end();
-                }
-            } else {
-                res.status(404);
-                res.send({ error: 'article not found' });
-            }
+        const validation = await validator(req.body, 'web');
+        if (validation.isValid) {
+            const update = await manager.updateArticlePartially(
+                articleId,
+                req.body
+            );
+            if (update.success) res.status(200);
+            else res.status(400);
+            res.send(update);
+        } else {
+            res.status(400);
+            res.send(validation.errors);
         }
-        res.status(400);
-        res.send(result.errors);
         res.end();
     });
 
-    return injectedRouter;
+    return router;
 };

@@ -1,80 +1,63 @@
 const rootPath = '';
-const singleauthorPath = '/:id';
+const singleAuthorPath = '/:id';
 
-module.exports = (injectedRouter, injectedManager, injectedValidator) => {
-    injectedRouter.get(rootPath, async (req, res) => {
-        const authors = await injectedManager.getAuthors();
-        if (authors) res.send(authors);
-        else res.send('No records found');
+module.exports = (router, manager, validator) => {
+    router.get(rootPath, async (req, res) => {
+        const authors = await manager.getAuthors();
+        res.send(authors);
         res.end();
     });
 
-    injectedRouter.post(rootPath, async (req, res) => {
-        const result = await injectedValidator(req.body, 'web');
-        if (result.isValid) {
-            const created = await injectedManager.createAuthor(req.body);
-            if (created) {
-                res.status(201);
-                res.send({ msg: 'success' });
-                res.end();
-            }
-        }
-        res.status(400);
-        res.send(result.errors);
-        res.end();
-    });
-
-    injectedRouter.get(singleauthorPath, async (req, res) => {
+    router.get(singleAuthorPath, async (req, res) => {
         const authorId = req.params.id;
-        const author = await injectedManager.findAuthor(authorId);
-        if (author) res.send(author);
+        const search = await manager.findAuthor(authorId);
+        if (search.success) res.send(search.data);
         else {
             res.status(404);
-            res.send({ error: 'author not found' });
+            res.send(search);
         }
         res.end();
     });
 
-    injectedRouter.delete(singleauthorPath, async (req, res) => {
-        const authorId = req.params.id;
-        const author = await injectedManager.findAuthor(authorId);
-        if (author) {
-            const deleted = await injectedManager.deleteAuthor(authorId);
-            if (deleted) {
-                res.status(204);
-                res.send({ msg: 'author deleted', id: authorId });
-            }
+    router.post(rootPath, async (req, res) => {
+        const validation = await validator(req.body, 'web');
+        if (validation.isValid) {
+            const creation = await manager.createAuthor(req.body);
+            if (creation.success) res.status(201);
+            else res.status(400);
+            res.send(creation);
         } else {
-            res.status(404);
-            res.send({ error: 'author not found' });
+            res.status(400);
+            res.send(validation.errors);
         }
         res.end();
     });
 
-    injectedRouter.put(singleauthorPath, async (req, res) => {
+    router.delete(singleAuthorPath, async (req, res) => {
         const authorId = req.params.id;
-        const result = await injectedValidator(req.body, 'web');
-        if (result.isValid) {
-            const author = await injectedManager.findAuthor(authorId);
-            if (author) {
-                const updated = await injectedManager.updateAuthor(
-                    authorId,
-                    req.body
-                );
-                if (updated) {
-                    res.status(200);
-                    res.send({ msg: 'success' });
-                    res.end();
-                }
-            } else {
-                res.status(404);
-                res.send({ error: 'author not found' });
-            }
+        const deletion = await manager.deleteAuthor(authorId);
+        if (deletion.success) res.status(204);
+        else {
+            res.status(404);
+            res.send(deletion);
         }
-        res.status(400);
-        res.send(result.errors);
         res.end();
     });
 
-    return injectedRouter;
+    router.put(singleAuthorPath, async (req, res) => {
+        const authorId = req.params.id;
+        const validation = await validator(req.body, 'web');
+        if (validation.isValid) {
+            const update = await manager.updateAuthor(authorId, req.body);
+            if (update.success) res.status(200);
+            else res.status(404);
+            res.send(update);
+        } else {
+            res.status(400);
+            res.send(validation.errors);
+        }
+        res.end();
+    });
+
+    return router;
 };
