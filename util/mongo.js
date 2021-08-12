@@ -1,17 +1,24 @@
 const { MongoClient } = require('mongodb');
 
-const USER = 'instafeedclient';
-const PASSWORD = escape('D.vX#naGq6aMxEy');
-const CLUSTER = 'instafeed-cluster.4xcj3.mongodb.net';
-const DATABASE = 'instafeed';
+let user;
+let password;
+let cluster;
+let database;
+let client;
 
-const uri = `mongodb+srv://${USER}:${PASSWORD}@${CLUSTER}/${DATABASE}?writeConcern=majority&retryWrites=true`;
-const client = new MongoClient(uri);
+const configureClient = (mongoConfig) => {
+    user = mongoConfig.user;
+    password = mongoConfig.password;
+    cluster = mongoConfig.cluster;
+    database = mongoConfig.database;
+    const uri = `mongodb+srv://${user}:${password}@${cluster}/${database}?writeConcern=majority&retryWrites=true`;
+    client = new MongoClient(uri);
+};
 
 async function run() {
     try {
         await client.connect();
-        await client.db(DATABASE).command({ ping: 1 });
+        await client.db(database).command({ ping: 1 });
         console.log('Connected successfully to server');
     } catch (err) {
         console.error(err);
@@ -36,7 +43,7 @@ const execute = async (operation) => {
 const insert = async (collection, object) => {
     const result = await execute(() =>
         client
-            .db(DATABASE)
+            .db(database)
             .collection(collection)
             .insertOne(object)
             .then((resp) => {
@@ -52,14 +59,14 @@ const insert = async (collection, object) => {
 
 const findAll = async (collection) => {
     const result = await execute(() =>
-        client.db(DATABASE).collection(collection).find({}).toArray()
+        client.db(database).collection(collection).find({}).toArray()
     );
     return { success: true, data: result };
 };
 
 const find = async (collection, filters) => {
     const result = await execute(() =>
-        client.db(DATABASE).collection(collection).find(filters).toArray()
+        client.db(database).collection(collection).find(filters).toArray()
     );
     return { success: true, data: result };
 };
@@ -67,7 +74,7 @@ const find = async (collection, filters) => {
 const remove = async (collection, filters) => {
     const result = await execute(() =>
         client
-            .db(DATABASE)
+            .db(database)
             .collection(collection)
             .deleteOne(filters)
             .then(() => {
@@ -86,7 +93,7 @@ const removeAll = async (collection, ids) => {
     toDelete._id = { $in: ids };
     const result = await execute(() =>
         client
-            .db(DATABASE)
+            .db(database)
             .collection(collection)
             .deleteMany(toDelete)
             .then(() => {
@@ -113,7 +120,7 @@ const update = async (
     if (pullFromSet) fieldsToUpdate.$pull = pullFromSet;
     const result = await execute(() =>
         client
-            .db(DATABASE)
+            .db(database)
             .collection(collection)
             .updateOne(filters, fieldsToUpdate)
             .then(() => {
@@ -127,12 +134,15 @@ const update = async (
     return result;
 };
 
-module.exports = {
-    run,
-    insert,
-    find,
-    findAll,
-    remove,
-    removeAll,
-    update,
+module.exports = (mongoConfig) => {
+    configureClient(mongoConfig);
+    return {
+        run,
+        insert,
+        find,
+        findAll,
+        remove,
+        removeAll,
+        update,
+    };
 };
