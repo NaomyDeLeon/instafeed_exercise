@@ -44,6 +44,8 @@
     "jsonwebtoken": "^8.5.1",
     "mongodb": "^4.1.0",
     "uuid": "^8.3.2",
+    "winston": "^3.3.3",
+    "winston-daily-rotate-file": "^4.5.5",
     "yup": "^0.32.9"
   }
 }

@@ -5,8 +5,13 @@ const config = require('./configs/default');
 const passwordManager = require('./util/passwordManager');
 
 const corsOptions = config.corsConfig;
-const { tokenValidator } = require('./middlewares/security')(config.tokenSign);
+const apiLogger = require('./middlewares/apiLogger');
 const dbManager = require('./util/mongo')(config.defaultMongoURI);
+
+const { tokenValidator } = require('./middlewares/security')(
+    config.tokenSign,
+    apiLogger.responseLogger
+);
 
 const articleSchemaRules = require('./schema-rules/articleSchemaRules');
 const { articleYupValidationHandler } =
@@ -15,7 +20,8 @@ const articleManager = require('./managers/articleManager')(dbManager);
 const articleRouter = require('./routers/articleRouter')(
     express.Router(),
     articleManager,
-    articleYupValidationHandler
+    articleYupValidationHandler,
+    apiLogger.responseLogger
 );
 
 const authorSchemaRules = require('./schema-rules/authorSchemaRules');
@@ -25,7 +31,8 @@ const authorManager = require('./managers/authorManager')(dbManager);
 const authorRouter = require('./routers/authorRouter')(
     express.Router(),
     authorManager,
-    authorYupValidationHandler
+    authorYupValidationHandler,
+    apiLogger.responseLogger
 );
 
 const userSchemaRules = require('./schema-rules/userSchemaRules');
@@ -38,7 +45,8 @@ const userManager = require('./managers/userManager')(
 const userRouter = require('./routers/userRouter')(
     express.Router(),
     userManager,
-    userYupValidationHandler
+    userYupValidationHandler,
+    apiLogger.responseLogger
 );
 
 const sessionSchemaRules = require('./schema-rules/sessionSchemaRules');
@@ -52,13 +60,15 @@ const sessionManager = require('./managers/sessionManager')(
 const sessionRouter = require('./routers/sessionRouter')(
     express.Router(),
     sessionManager,
-    sessionYupValidationHandler
+    sessionYupValidationHandler,
+    apiLogger.responseLogger
 );
 
 const app = express();
 app.use(helmet());
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(apiLogger.requestLogger);
 app.use(tokenValidator);
 app.use(config.articlesPath, articleRouter);
 app.use(config.authorsPath, authorRouter);

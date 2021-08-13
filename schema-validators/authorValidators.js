@@ -2,8 +2,7 @@ const JSONvalidator = require('../util/validation');
 
 let schemaRules;
 
-const authorValidationHandler = async (authorJSON, filename) => {
-    console.info(`Starting validation with manual handler - file ${filename}`);
+const authorValidationHandler = async (authorJSON) => {
     const result = await JSONvalidator.validateManually(
         authorJSON,
         schemaRules.manual
@@ -11,8 +10,7 @@ const authorValidationHandler = async (authorJSON, filename) => {
     return result;
 };
 
-const authorYupValidationHandler = async (authorJSON, filename) => {
-    console.info(`Starting validation with yup handler - file ${filename}`);
+const authorYupValidationHandler = async (authorJSON) => {
     const result = await JSONvalidator.validateWithYup(
         authorJSON,
         schemaRules.yup

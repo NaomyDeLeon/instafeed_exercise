@@ -1,10 +1,11 @@
 const rootPath = '';
 const singleArticlePath = '/:id';
 
-module.exports = (router, manager, validator) => {
+module.exports = (router, manager, validator, logger) => {
     router.get(rootPath, async (req, res) => {
         const articles = await manager.getArticles();
         res.send(articles);
+        logger(req, res, articles);
         res.end();
     });
 
@@ -15,20 +16,23 @@ module.exports = (router, manager, validator) => {
         else {
             res.status(404);
             res.send(article);
+            logger(req, res, article);
         }
         res.end();
     });
 
     router.post(rootPath, async (req, res) => {
-        const validation = await validator(req.body, 'web');
+        const validation = await validator(req.body);
         if (validation.isValid) {
             const creation = await manager.createArticle(req.body);
             if (creation.success) res.status(201);
             else res.status(400);
             res.send(creation);
+            logger(req, res, creation);
         } else {
             res.status(400);
             res.send(validation.errors);
+            logger(req, res, validation);
         }
         res.end();
     });
@@ -41,27 +45,30 @@ module.exports = (router, manager, validator) => {
             res.status(404);
             res.send(deletion);
         }
+        logger(req, res, deletion);
         res.end();
     });
 
     router.put(singleArticlePath, async (req, res) => {
         const articleId = req.params.id;
-        const validation = await validator(req.body, 'web');
+        const validation = await validator(req.body);
         if (validation.isValid) {
             const update = await manager.updateArticle(articleId, req.body);
             if (update.success) res.status(200);
             else res.status(404);
             res.send(update);
+            logger(req, res, update);
         } else {
             res.status(400);
             res.send(validation.errors);
+            logger(req, res, validation);
         }
         res.end();
     });
 
     router.patch(singleArticlePath, async (req, res) => {
         const articleId = req.params.id;
-        const validation = await validator(req.body, 'web');
+        const validation = await validator(req.body);
         if (validation.isValid) {
             const update = await manager.updateArticlePartially(
                 articleId,
@@ -70,9 +77,11 @@ module.exports = (router, manager, validator) => {
             if (update.success) res.status(200);
             else res.status(400);
             res.send(update);
+            logger(req, res, update);
         } else {
             res.status(400);
             res.send(validation.errors);
+            logger(req, res, validation);
         }
         res.end();
     });
