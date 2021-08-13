@@ -25,7 +25,6 @@ const findUser = async (userId) => {
     results.data = results.data.map((user) => {
         return { id: user._id, username: user.username, role: user.role };
     });
-
     return results;
 };
 
@@ -51,10 +50,6 @@ const deleteUser = async (userId) => {
     return { success: false, errors: 'user not found' };
 };
 
-const login = async (loginData) => {
-    return loginData;
-};
-
 module.exports = (injectedDbManager, injectedPasswordManager) => {
     dbManager = injectedDbManager;
     passwordManager = injectedPasswordManager;
@@ -63,6 +58,5 @@ module.exports = (injectedDbManager, injectedPasswordManager) => {
         findUser,
         createUser,
         deleteUser,
-        login,
     };
 };

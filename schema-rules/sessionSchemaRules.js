@@ -19,19 +19,19 @@ const validatePassword = (value) => {
     return null;
 };
 
-const authorSchemaManualRules = {
+const sessionSchemaManualRules = {
     username: { rule: validateUsername },
     password: { rule: validatePassword },
 };
 
-const authorSchemaYUPRules = yup.object().shape({
+const sessionSchemaYUPRules = yup.object().shape({
     username: yup.string().min(8).max(15).nullable(false).required(),
     password: yup.string().min(8).max(10).nullable(false).required(),
 });
 
-const authorSchemaRules = {
-    manual: authorSchemaManualRules,
-    yup: authorSchemaYUPRules,
+const sessionSchemaRules = {
+    manual: sessionSchemaManualRules,
+    yup: sessionSchemaYUPRules,
 };
 
-module.exports = authorSchemaRules;
+module.exports = sessionSchemaRules;

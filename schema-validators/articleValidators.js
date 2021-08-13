@@ -1,25 +1,28 @@
-const schemaRules = require('./authorSchemaRules');
 const JSONvalidator = require('../util/validation');
 
-const authorValidationHandler = async (authorJSON, filename) => {
+let schemaRules;
+const articleValidationHandler = async (articleJSON, filename) => {
     console.info(`Starting validation with manual handler - file ${filename}`);
     const result = await JSONvalidator.validateManually(
-        authorJSON,
+        articleJSON,
         schemaRules.manual
     );
     return result;
 };
 
-const authorYupValidationHandler = async (authorJSON, filename) => {
+const articleYupValidationHandler = async (articleJSON, filename) => {
     console.info(`Starting validation with yup handler - file ${filename}`);
     const result = await JSONvalidator.validateWithYup(
-        authorJSON,
+        articleJSON,
         schemaRules.yup
     );
     return result;
 };
 
-module.exports = {
-    authorYupValidationHandler,
-    authorValidationHandler,
+module.exports = (rules) => {
+    schemaRules = rules;
+    return {
+        articleYupValidationHandler,
+        articleValidationHandler,
+    };
 };

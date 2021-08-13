@@ -4,11 +4,12 @@ const articlesPath = process.env.ARTICLES_PATH || '/articles';
 const authorsPath = process.env.AUTHORS_PATH || '/authors';
 const usersPath = process.env.AUTHORS_PATH || '/users';
 const sessionsPath = process.env.AUTHORS_PATH || '/sessions';
-const mongoUser = process.env.MONGO_USER || 'instafeedclient';
-const mongoPwd = process.env.MONGO_PWD || escape('D.vX#naGq6aMxEy');
-const mongoDb = process.env.MONGO_DB || 'instafeed';
-const mongoCluster =
-    process.env.MONGO_CLUSTER || 'instafeed-cluster.4xcj3.mongodb.net';
+const tokenSign = process.env.TOKEN_SIGN || 'welcome1';
+const defaultMongoURI =
+    process.env.defaultMongoURI ||
+    `mongodb+srv://instafeedclient:${escape(
+        'D.vX#naGq6aMxEy'
+    )}@instafeed-cluster.4xcj3.mongodb.net/instafeed?writeConcern=majority&retryWrites=true`;
 
 module.exports = {
     origin,
@@ -17,8 +18,6 @@ module.exports = {
     authorsPath,
     usersPath,
     sessionsPath,
-    mongoUser,
-    mongoPwd,
-    mongoCluster,
-    mongoDb,
+    tokenSign,
+    defaultMongoURI,
 };

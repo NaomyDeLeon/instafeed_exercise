@@ -1,24 +1,16 @@
 const { MongoClient } = require('mongodb');
 
-let user;
-let password;
-let cluster;
-let database;
 let client;
 
-const configureClient = (mongoConfig) => {
-    user = mongoConfig.user;
-    password = mongoConfig.password;
-    cluster = mongoConfig.cluster;
-    database = mongoConfig.database;
-    const uri = `mongodb+srv://${user}:${password}@${cluster}/${database}?writeConcern=majority&retryWrites=true`;
+const configureClient = (mongoURI) => {
+    const uri = mongoURI;
     client = new MongoClient(uri);
 };
 
 async function run() {
     try {
         await client.connect();
-        await client.db(database).command({ ping: 1 });
+        await client.db().command({ ping: 1 });
         console.log('Connected successfully to server');
     } catch (err) {
         console.error(err);
@@ -43,7 +35,7 @@ const execute = async (operation) => {
 const insert = async (collection, object) => {
     const result = await execute(() =>
         client
-            .db(database)
+            .db()
             .collection(collection)
             .insertOne(object)
             .then((resp) => {
@@ -59,14 +51,14 @@ const insert = async (collection, object) => {
 
 const findAll = async (collection) => {
     const result = await execute(() =>
-        client.db(database).collection(collection).find({}).toArray()
+        client.db().collection(collection).find({}).toArray()
     );
     return { success: true, data: result };
 };
 
 const find = async (collection, filters) => {
     const result = await execute(() =>
-        client.db(database).collection(collection).find(filters).toArray()
+        client.db().collection(collection).find(filters).toArray()
     );
     return { success: true, data: result };
 };
@@ -74,7 +66,7 @@ const find = async (collection, filters) => {
 const remove = async (collection, filters) => {
     const result = await execute(() =>
         client
-            .db(database)
+            .db()
             .collection(collection)
             .deleteOne(filters)
             .then(() => {
@@ -93,7 +85,7 @@ const removeAll = async (collection, ids) => {
     toDelete._id = { $in: ids };
     const result = await execute(() =>
         client
-            .db(database)
+            .db()
             .collection(collection)
             .deleteMany(toDelete)
             .then(() => {
@@ -120,7 +112,7 @@ const update = async (
     if (pullFromSet) fieldsToUpdate.$pull = pullFromSet;
     const result = await execute(() =>
         client
-            .db(database)
+            .db()
             .collection(collection)
             .updateOne(filters, fieldsToUpdate)
             .then(() => {
