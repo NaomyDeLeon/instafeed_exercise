@@ -11,6 +11,14 @@ const defaultMongoURI =
         'D.vX#naGq6aMxEy'
     )}@instafeed-cluster.4xcj3.mongodb.net/instafeed?writeConcern=majority&retryWrites=true`;
 
+const corsConfig = {
+    origin: [origin],
+    methods: ['GET', 'PUT', 'POST', 'DELETE', 'PATCH'],
+    preflightContinue: false,
+    optionsSuccessStatus: 200,
+    credentials: true,
+};
+
 module.exports = {
     origin,
     port,
@@ -20,4 +28,5 @@ module.exports = {
     sessionsPath,
     tokenSign,
     defaultMongoURI,
+    corsConfig,
 };

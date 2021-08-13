@@ -4,16 +4,9 @@ const helmet = require('helmet');
 const config = require('./configs/default');
 const passwordManager = require('./util/passwordManager');
 
+const corsOptions = config.corsConfig;
 const { tokenValidator } = require('./middlewares/security')(config.tokenSign);
 const dbManager = require('./util/mongo')(config.defaultMongoURI);
-
-const corsOptions = {
-    origin: [config.origin],
-    methods: ['GET', 'PUT', 'POST', 'DELETE', 'PATCH'],
-    preflightContinue: false,
-    optionsSuccessStatus: 200,
-    credentials: true,
-};
 
 const articleSchemaRules = require('./schema-rules/articleSchemaRules');
 const { articleYupValidationHandler } =
