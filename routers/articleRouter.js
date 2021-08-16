@@ -1,7 +1,7 @@
 const rootPath = '';
 const singleArticlePath = '/:id';
 
-module.exports = (router, manager, validator, logger) => {
+module.exports = (router, manager, validator, logger, cacheManager) => {
     router.get(rootPath, async (req, res) => {
         const articles = await manager.getArticles();
         res.send(articles);
@@ -9,16 +9,25 @@ module.exports = (router, manager, validator, logger) => {
         res.end();
     });
 
-    router.get(singleArticlePath, async (req, res) => {
+    router.get(singleArticlePath, (req, res) => {
         const articleId = req.params.id;
-        const article = await manager.findArticle(articleId);
-        if (article) res.send(article.data);
-        else {
-            res.status(404);
-            res.send(article);
-            logger(req, res, article);
-        }
-        res.end();
+        res.set('Cache-control', 'public, max-age=3600');
+        cacheManager.get(`article-${articleId}`, async (err, storedArticle) => {
+            if (err) logger.err(err);
+            if (storedArticle !== null) {
+                res.send(JSON.parse(storedArticle));
+            } else {
+                const article = await manager.findArticle(articleId);
+                if (article.success) {
+                    res.send(article.data);
+                } else {
+                    res.status(404);
+                    res.send(article);
+                    logger(req, res, article);
+                }
+            }
+            res.end();
+        });
     });
 
     router.post(rootPath, async (req, res) => {

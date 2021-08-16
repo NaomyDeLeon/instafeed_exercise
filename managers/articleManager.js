@@ -1,4 +1,5 @@
 let dbManager;
+let events;
 const collection = 'articles';
 const authorCollection = 'authors';
 const articleStructure = {
@@ -36,12 +37,15 @@ const createArticle = async (article) => {
         delete fieldsToInsert.id;
         const toUpdate = { articles: fieldsToInsert._id };
         const result = await dbManager.insert(collection, fieldsToInsert);
-        await dbManager.update(
-            authorCollection,
-            author.data[0],
-            undefined,
-            toUpdate
-        );
+        if (result.success) {
+            events.emit('ArticleCreated', { data: fieldsToInsert });
+            await dbManager.update(
+                authorCollection,
+                author.data[0],
+                undefined,
+                toUpdate
+            );
+        }
         return result;
     }
     return { created: false, errors: 'Author does not exist' };
@@ -102,8 +106,9 @@ const updateArticlePartially = async (articleId, newValues) => {
     return { success: false, errors: 'Article not found' };
 };
 
-module.exports = (injectedDbManager) => {
+module.exports = (injectedDbManager, articleEventManager) => {
     dbManager = injectedDbManager;
+    events = articleEventManager;
     return {
         getArticles,
         findArticle,
