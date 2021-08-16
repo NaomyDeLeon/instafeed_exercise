@@ -4,8 +4,10 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const redis = require('redis');
+const swaggerUi = require('swagger-ui-express');
 const config = require('./configs/default');
 const passwordManager = require('./util/passwordManager');
+const swaggerDocument = require('./swagger.json');
 
 const corsOptions = config.corsConfig;
 const apiLogger = require('./middlewares/apiLogger');
@@ -85,6 +87,7 @@ app.use(config.articlesPath, articleRouter);
 app.use(config.authorsPath, authorRouter);
 app.use(config.usersPath, userRouter);
 app.use(config.sessionsPath, sessionRouter);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.get(config.crashPath, () => process.exit(0));
 
 try {

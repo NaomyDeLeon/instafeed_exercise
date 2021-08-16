@@ -1,0 +1,80 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "1.0.0",
+        "title": "Instafeed exercise",
+        "description": "Node Js High Seniority exercise",
+        "license": {
+            "name": "ISC"
+        }
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "tags": [
+        {
+            "name": "NodeJS",
+            "description": "something"
+        }
+    ],
+    "schemes": [
+        "http"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/articles": {
+            "get": {
+                "tags": [
+                    "articles"
+                ],
+                "summary": "Get all articles in system",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Articles"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Articles": {
+            "required": [],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "modifiedAt": {
+                    "type": "datetime"
+                },
+                "publishedAt": {
+                    "type": "datetime"
+                },
+                "keywords": {
+                    "type": "array"
+                },
+                "author": {
+                    "type": "string"
+                },
+                "readMins": {
+                    "type": "number"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
