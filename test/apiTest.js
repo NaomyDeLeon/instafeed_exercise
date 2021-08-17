@@ -5,34 +5,26 @@ const helmet = require('helmet');
 const request = require('supertest');
 const config = require('../configs/default');
 const passwordManager = require('../util/passwordManager');
+const apiLogger = require('../api/middlewares/apiLogger');
 
 const corsOptions = config.corsConfig;
-const { tokenValidator } = require('../middlewares/security')(config.tokenSign);
-const dbManager = require('../util/mongo')(config.defaultMongoURI);
-
-const authorSchemaRules = require('../schema-rules/authorSchemaRules');
-const { authorYupValidationHandler } =
-    require('../schema-validators/authorValidators')(authorSchemaRules);
-const authorManager = require('../managers/authorManager')(dbManager);
-const authorRouter = require('../routers/authorRouter')(
-    express.Router(),
-    authorManager,
-    authorYupValidationHandler
-);
-
-const sessionSchemaRules = require('../schema-rules/sessionSchemaRules');
-const { sessionYupValidationHandler } =
-    require('../schema-validators/sessionValidators')(sessionSchemaRules);
-const sessionManager = require('../managers/sessionManager')(
-    dbManager,
-    passwordManager,
+const { tokenValidator } = require('../api/middlewares/security')(
     config.tokenSign
 );
-const sessionRouter = require('../routers/sessionRouter')(
-    express.Router(),
-    sessionManager,
-    sessionYupValidationHandler
-);
+const db = require('../util/mongo')(config.defaultMongoURI);
+
+const authorRouter = require('../api/authors/infrastucture/authorRouter')({
+    router: express.Router(),
+    logger: apiLogger.responseLogger,
+    db,
+});
+
+const sessionRouter = require('../api/sessions/infrastucture/sessionRouter')({
+    router: express.Router(),
+    logger: apiLogger.responseLogger,
+    db,
+    passwordManager,
+});
 
 const app = express();
 app.use(helmet());
@@ -62,8 +54,8 @@ const loginUser = () => {
 
 before(loginUser());
 
-describe('APIValidator', () => {
-    describe('author API validator', () => {
+describe('apiValidator', () => {
+    describe('author api validator', () => {
         it('should return the authors list', (done) => {
             request(app)
                 .get('/authors')

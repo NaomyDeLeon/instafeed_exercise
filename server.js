@@ -1,44 +1,47 @@
-const { cpus } = require('os');
 const cluster = require('cluster');
+const { cpus } = require('os');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const redisClient = require('redis');
 const swaggerUi = require('swagger-ui-express');
-const config = require('./API/configs/default');
-const passwordManager = require('./API/util/passwordManager');
+const config = require('./configs/default');
+const passwordManager = require('./util/passwordManager');
 const swaggerDocument = require('./swagger.json');
-const apiLogger = require('./API/middlewares/apiLogger');
-const db = require('./API/util/mongo')(config.defaultMongoURI);
+const apiLogger = require('./api/middlewares/apiLogger');
+const db = require('./util/mongo')(config.defaultMongoURI);
 
 const redis = redisClient.createClient({ url: config.defaultRedisURL });
 
-const { tokenValidator } = require('./API/middlewares/security')(
+const { tokenValidator } = require('./api/middlewares/security')(
     config.tokenSign,
     apiLogger.responseLogger
 );
 
-const articleRouter = require('./API/articles/infrastucture/articleRouter')({
+const articleRouter = require('./api/articles/infrastucture/articleRouter')({
     router: express.Router(),
     logger: apiLogger.responseLogger,
     db,
     redis,
 });
 
-const authorRouter = require('./API/authors/infrastucture/authorRouter')({
+const authorRouter = require('./api/authors/infrastucture/authorRouter')({
     router: express.Router(),
     logger: apiLogger.responseLogger,
+    db,
 });
 
-const userRouter = require('./API/users/infrastucture/userRouter')({
+const userRouter = require('./api/users/infrastucture/userRouter')({
     router: express.Router(),
     logger: apiLogger.responseLogger,
+    db,
     passwordManager,
 });
 
-const sessionRouter = require('./API/sessions/infrastucture/sessionRouter')({
+const sessionRouter = require('./api/sessions/infrastucture/sessionRouter')({
     router: express.Router(),
     logger: apiLogger.responseLogger,
+    db,
     passwordManager,
 });
 
