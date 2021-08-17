@@ -1,5 +1,22 @@
 const express = require('express');
-const dbManager = require('./util/mongo');
+const cors = require('cors');
+const helmet = require('helmet');
+const config = require('./configs/default');
+
+const corsOptions = {
+    origin: [config.origin],
+    methods: ['GET', 'PUT', 'POST', 'DELETE', 'PATCH'],
+    preflightContinue: false,
+    optionsSuccessStatus: 200,
+    credentials: true,
+};
+
+const dbManager = require('./util/mongo')({
+    user: config.mongoUser,
+    password: config.mongoPwd,
+    cluster: config.mongoCluster,
+    database: config.mongoDb,
+});
 
 const { articleYupValidationHandler } = require('./articles/articleValidators');
 const articleManager = require('./articles/articleManager')(dbManager);
@@ -17,16 +34,18 @@ const authorRouter = require('./authors/authorRouter')(
     authorYupValidationHandler
 );
 
+const { port } = config;
+const { articlesPath } = config;
+const { authorsPath } = config;
 const app = express();
-const defaultPort = 8081;
-const articlesPath = '/articles';
-const authorsPath = '/authors';
 
+app.use(helmet());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(articlesPath, articleRouter);
 app.use(authorsPath, authorRouter);
 
 dbManager
     .run()
-    .then(() => app.listen(defaultPort, () => console.log('server iniciado')))
+    .then(() => app.listen(port, () => console.log('server iniciado')))
     .catch((err) => console.error(err));
