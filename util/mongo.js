@@ -21,96 +21,108 @@ async function run() {
 }
 
 const execute = async (operation) => {
-    let result;
     try {
         await client.connect();
-        result = await operation();
+        const result = await operation();
+        return result;
     } catch (err) {
         console.error(err);
+        return { success: false, errors: err };
     } finally {
         await client.close();
     }
-    return result;
 };
+
 const insert = async (collection, object) => {
-    let result = false;
-    result = await execute(
-        () =>
-            new Promise((resolve) =>
-                client
-                    .db(DATABASE)
-                    .collection(collection)
-                    .insertOne(object, async (err, res) => {
-                        if (err) {
-                            console.log(err);
-                            resolve(false);
-                        } else {
-                            console.log(res);
-                            resolve(true);
-                        }
-                    })
-            )
+    const result = await execute(() =>
+        client
+            .db(DATABASE)
+            .collection(collection)
+            .insertOne(object)
+            .then((resp) => {
+                return { success: true, id: resp.insertedId };
+            })
+            .catch((err) => {
+                console.log(err);
+                return { success: false, errors: err };
+            })
     );
     return result;
 };
 
 const findAll = async (collection) => {
-    let result = [];
-    result = await execute(() =>
+    const result = await execute(() =>
         client.db(DATABASE).collection(collection).find({}).toArray()
     );
-    return result;
+    return { success: true, data: result };
 };
 
 const find = async (collection, filters) => {
-    let result = [];
-    result = await execute(() =>
+    const result = await execute(() =>
         client.db(DATABASE).collection(collection).find(filters).toArray()
     );
-    return result;
+    return { success: true, data: result };
 };
 
 const remove = async (collection, filters) => {
-    let result = [];
-    result = await execute(
-        () =>
-            new Promise((resolve) =>
-                client
-                    .db(DATABASE)
-                    .collection(collection)
-                    .deleteOne(filters, (err, res) => {
-                        if (err) {
-                            console.log(err);
-                            resolve(false);
-                        } else {
-                            console.log(res);
-                            resolve(true);
-                        }
-                    })
-            )
+    const result = await execute(() =>
+        client
+            .db(DATABASE)
+            .collection(collection)
+            .deleteOne(filters)
+            .then(() => {
+                return { success: true };
+            })
+            .catch((err) => {
+                console.log(err);
+                return { success: false, errors: err };
+            })
     );
     return result;
 };
 
-const update = async (collection, filters, newValues) => {
-    let result = [];
-    const fieldsToUpdate = { $set: newValues };
-    result = await execute(
-        () =>
-            new Promise((resolve) =>
-                client
-                    .db(DATABASE)
-                    .collection(collection)
-                    .updateOne(filters, fieldsToUpdate, (err, res) => {
-                        if (err) {
-                            console.log(err);
-                            resolve(false);
-                        } else {
-                            console.log(res);
-                            resolve(true);
-                        }
-                    })
-            )
+const removeAll = async (collection, ids) => {
+    const toDelete = {};
+    toDelete._id = { $in: ids };
+    const result = await execute(() =>
+        client
+            .db(DATABASE)
+            .collection(collection)
+            .deleteMany(toDelete)
+            .then(() => {
+                return { success: true };
+            })
+            .catch((err) => {
+                console.log(err);
+                return { success: false, errors: err };
+            })
+    );
+    return result;
+};
+
+const update = async (
+    collection,
+    filters,
+    newValues = undefined,
+    addToSet = undefined,
+    pullFromSet = undefined
+) => {
+    const fieldsToUpdate = {};
+    if (newValues) fieldsToUpdate.$set = newValues;
+    if (addToSet) fieldsToUpdate.$addToSet = addToSet;
+    if (pullFromSet) fieldsToUpdate.$pull = pullFromSet;
+    const result = await execute(() =>
+        client
+            .db(DATABASE)
+            .collection(collection)
+            .updateOne(filters, fieldsToUpdate)
+            .then(() => {
+                return { success: true };
+            })
+            .catch((err) => {
+                console.log(err);
+                return { success: false, errors: err };
+            })
     );
     return result;
 };
@@ -121,5 +133,6 @@ module.exports = {
     find,
     findAll,
     remove,
+    removeAll,
     update,
 };
