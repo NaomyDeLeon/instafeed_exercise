@@ -17,7 +17,7 @@ const findArticle = (req, res) => {
     redis.get(`article-${articleId}`, async (err, storedArticle) => {
         if (err) logger.err(err);
         if (storedArticle !== null) {
-            logger.log('INFO', 'returning from cache');
+            logger(req, res, 'returning from cache');
             res.send(JSON.parse(storedArticle));
         } else {
             const article = await repository.findArticle(articleId);
