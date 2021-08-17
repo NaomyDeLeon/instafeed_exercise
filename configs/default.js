@@ -6,8 +6,11 @@ const usersPath = process.env.AUTHORS_PATH || '/users';
 const sessionsPath = process.env.AUTHORS_PATH || '/sessions';
 const crashPath = process.env.CRASH_PATH || '/crash';
 const tokenSign = process.env.TOKEN_SIGN || 'welcome1';
+const defaultRedisURL =
+    process.env.DEFAULT_REDIS_URL ||
+    'redis://:pfc5464b293b6b7a81e5752c352ffa006f288803ff2556c32f6eec1b0d288ab6a@ec2-44-195-240-40.compute-1.amazonaws.com:16529';
 const defaultMongoURI =
-    process.env.defaultMongoURI ||
+    process.env.DEFAULT_MONGO_URL ||
     `mongodb+srv://instafeedclient:${escape(
         'D.vX#naGq6aMxEy'
     )}@instafeed-cluster.4xcj3.mongodb.net/instafeed?writeConcern=majority&retryWrites=true`;
@@ -29,6 +32,7 @@ module.exports = {
     sessionsPath,
     crashPath,
     tokenSign,
+    defaultRedisURL,
     defaultMongoURI,
     corsConfig,
 };

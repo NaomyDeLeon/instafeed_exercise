@@ -3,12 +3,17 @@ const cluster = require('cluster');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const redis = require('redis');
 const config = require('./configs/default');
 const passwordManager = require('./util/passwordManager');
 
 const corsOptions = config.corsConfig;
 const apiLogger = require('./middlewares/apiLogger');
 const dbManager = require('./util/mongo')(config.defaultMongoURI);
+
+const redisClient = redis.createClient({ url: config.defaultRedisURL });
+
+const articleEvents = require('./events/articleEventsManager')(redisClient);
 
 const { tokenValidator } = require('./middlewares/security')(
     config.tokenSign,
@@ -18,12 +23,16 @@ const { tokenValidator } = require('./middlewares/security')(
 const articleSchemaRules = require('./schema-rules/articleSchemaRules');
 const { articleYupValidationHandler } =
     require('./schema-validators/articleValidators')(articleSchemaRules);
-const articleManager = require('./managers/articleManager')(dbManager);
+const articleManager = require('./managers/articleManager')(
+    dbManager,
+    articleEvents
+);
 const articleRouter = require('./routers/articleRouter')(
     express.Router(),
     articleManager,
     articleYupValidationHandler,
-    apiLogger.responseLogger
+    apiLogger.responseLogger,
+    redisClient
 );
 
 const authorSchemaRules = require('./schema-rules/authorSchemaRules');
