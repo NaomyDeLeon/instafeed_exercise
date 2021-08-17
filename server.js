@@ -2,6 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const config = require('./configs/default');
+const passwordManager = require('./util/passwordManager');
+
+const { tokenValidator } = require('./middlewares/security')(config.tokenSign);
+const dbManager = require('./util/mongo')(config.defaultMongoURI);
 
 const corsOptions = {
     origin: [config.origin],
@@ -11,41 +15,63 @@ const corsOptions = {
     credentials: true,
 };
 
-const dbManager = require('./util/mongo')({
-    user: config.mongoUser,
-    password: config.mongoPwd,
-    cluster: config.mongoCluster,
-    database: config.mongoDb,
-});
-
-const { articleYupValidationHandler } = require('./articles/articleValidators');
-const articleManager = require('./articles/articleManager')(dbManager);
-const articleRouter = require('./articles/articleRouter')(
+const articleSchemaRules = require('./schema-rules/articleSchemaRules');
+const { articleYupValidationHandler } =
+    require('./schema-validators/articleValidators')(articleSchemaRules);
+const articleManager = require('./managers/articleManager')(dbManager);
+const articleRouter = require('./routers/articleRouter')(
     express.Router(),
     articleManager,
     articleYupValidationHandler
 );
 
-const { authorYupValidationHandler } = require('./authors/authorValidators');
-const authorManager = require('./authors/authorManager')(dbManager);
-const authorRouter = require('./authors/authorRouter')(
+const authorSchemaRules = require('./schema-rules/authorSchemaRules');
+const { authorYupValidationHandler } =
+    require('./schema-validators/authorValidators')(authorSchemaRules);
+const authorManager = require('./managers/authorManager')(dbManager);
+const authorRouter = require('./routers/authorRouter')(
     express.Router(),
     authorManager,
     authorYupValidationHandler
 );
 
-const { port } = config;
-const { articlesPath } = config;
-const { authorsPath } = config;
-const app = express();
+const userSchemaRules = require('./schema-rules/userSchemaRules');
+const { userYupValidationHandler } =
+    require('./schema-validators/userValidators')(userSchemaRules);
+const userManager = require('./managers/userManager')(
+    dbManager,
+    passwordManager
+);
+const userRouter = require('./routers/userRouter')(
+    express.Router(),
+    userManager,
+    userYupValidationHandler
+);
 
+const sessionSchemaRules = require('./schema-rules/sessionSchemaRules');
+const { sessionYupValidationHandler } =
+    require('./schema-validators/sessionValidators')(sessionSchemaRules);
+const sessionManager = require('./managers/sessionManager')(
+    dbManager,
+    passwordManager,
+    config.tokenSign
+);
+const sessionRouter = require('./routers/sessionRouter')(
+    express.Router(),
+    sessionManager,
+    sessionYupValidationHandler
+);
+
+const app = express();
 app.use(helmet());
 app.use(cors(corsOptions));
 app.use(express.json());
-app.use(articlesPath, articleRouter);
-app.use(authorsPath, authorRouter);
-
+app.use(tokenValidator);
+app.use(config.articlesPath, articleRouter);
+app.use(config.authorsPath, authorRouter);
+app.use(config.usersPath, userRouter);
+app.use(config.sessionsPath, sessionRouter);
 dbManager
     .run()
-    .then(() => app.listen(port, () => console.log('server iniciado')))
+    .then(() => app.listen(config.port, () => console.log('server iniciado')))
     .catch((err) => console.error(err));
