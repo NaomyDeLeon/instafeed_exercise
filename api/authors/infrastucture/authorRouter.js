@@ -5,7 +5,7 @@ let logger;
 
 const schema = require('../domain/authorSchemaRules');
 const { authorYupValidator } = require('../domain/authorValidators')(schema);
-const repository = require('../application/authorRepository')({ db });
+const repository = require('../domain/authorRepository')({ db });
 const controller = require('../application/authorController')({
     validator: authorYupValidator,
     repository,

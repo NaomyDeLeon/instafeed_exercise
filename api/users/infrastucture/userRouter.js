@@ -6,7 +6,7 @@ let logger;
 
 const schema = require('../domain/userSchemaRules');
 const { userYupValidator } = require('../domain/userValidators')(schema);
-const repository = require('../application/userRepository')({
+const repository = require('../domain/userRepository')({
     db,
     passwordManager,
 });

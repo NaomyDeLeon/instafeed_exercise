@@ -7,7 +7,7 @@ let logger;
 const schema = require('../domain/articleSchemaRules');
 const events = require('../../events/articleEventsManager')(redis);
 const { articleYupValidator } = require('../domain/articleValidators')(schema);
-const repository = require('../application/articleRepository')({ db, events });
+const repository = require('../domain/articleRepository')({ db, events });
 const controller = require('../application/articleController')({
     validator: articleYupValidator,
     repository,

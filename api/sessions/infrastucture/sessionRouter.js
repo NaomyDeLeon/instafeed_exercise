@@ -5,7 +5,7 @@ let logger;
 
 const schema = require('../domain/sessionSchemaRules');
 const { sessionYupValidator } = require('../domain/sessionValidators')(schema);
-const repository = require('../application/sessionRepository')({
+const repository = require('../domain/sessionRepository')({
     db,
     passwordManager,
 });
