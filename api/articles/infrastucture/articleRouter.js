@@ -13,12 +13,13 @@ module.exports = (config) => {
     const { router } = config;
     const validator = validators(schema).articleYupValidator;
     const articleEvents = events(redis);
-    const articleRepository = repository({ db, articleEvents });
+    const articleRepository = repository({ db });
     const articleController = controller({
         validator,
         repository: articleRepository,
         logger,
         redis,
+        event: articleEvents,
     });
     router.get(rootPath, articleController.getArticles);
     router.post(rootPath, articleController.createArticle);
