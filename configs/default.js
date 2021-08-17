@@ -4,6 +4,7 @@ const articlesPath = process.env.ARTICLES_PATH || '/articles';
 const authorsPath = process.env.AUTHORS_PATH || '/authors';
 const usersPath = process.env.AUTHORS_PATH || '/users';
 const sessionsPath = process.env.AUTHORS_PATH || '/sessions';
+const crashPath = process.env.CRASH_PATH || '/crash';
 const tokenSign = process.env.TOKEN_SIGN || 'welcome1';
 const defaultMongoURI =
     process.env.defaultMongoURI ||
@@ -26,6 +27,7 @@ module.exports = {
     authorsPath,
     usersPath,
     sessionsPath,
+    crashPath,
     tokenSign,
     defaultMongoURI,
     corsConfig,
