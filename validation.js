@@ -42,8 +42,8 @@ const evaluateResult = (errors) => {
 const validate = async (object, rules, validator) => {
     try {
         const errors = await validator(object, rules);
-        const result = evaluateResult(errors);
-        return result;
+        const isValid = evaluateResult(errors);
+        return { isValid, errors };
     } catch (err) {
         console.error(err);
         return false;
