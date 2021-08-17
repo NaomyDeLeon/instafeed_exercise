@@ -1,80 +1,51 @@
-const { cpus } = require('os');
 const cluster = require('cluster');
+const { cpus } = require('os');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const redis = require('redis');
+const redisClient = require('redis');
+const swaggerUi = require('swagger-ui-express');
 const config = require('./configs/default');
 const passwordManager = require('./util/passwordManager');
+const swaggerDocument = require('./swagger.json');
+const apiLogger = require('./api/middlewares/apiLogger');
+const db = require('./util/mongo')(config.defaultMongoURI);
 
-const corsOptions = config.corsConfig;
-const apiLogger = require('./middlewares/apiLogger');
-const dbManager = require('./util/mongo')(config.defaultMongoURI);
+const redis = redisClient.createClient({ url: config.defaultRedisURL });
 
-const redisClient = redis.createClient({ url: config.defaultRedisURL });
-
-const articleEvents = require('./events/articleEventsManager')(redisClient);
-
-const { tokenValidator } = require('./middlewares/security')(
+const { tokenValidator } = require('./api/middlewares/security')(
     config.tokenSign,
     apiLogger.responseLogger
 );
 
-const articleSchemaRules = require('./schema-rules/articleSchemaRules');
-const { articleYupValidationHandler } =
-    require('./schema-validators/articleValidators')(articleSchemaRules);
-const articleManager = require('./managers/articleManager')(
-    dbManager,
-    articleEvents
-);
-const articleRouter = require('./routers/articleRouter')(
-    express.Router(),
-    articleManager,
-    articleYupValidationHandler,
-    apiLogger.responseLogger,
-    redisClient
-);
+const articleRouter = require('./api/articles/infrastucture/articleRouter')({
+    router: express.Router(),
+    logger: apiLogger.responseLogger,
+    db,
+    redis,
+});
 
-const authorSchemaRules = require('./schema-rules/authorSchemaRules');
-const { authorYupValidationHandler } =
-    require('./schema-validators/authorValidators')(authorSchemaRules);
-const authorManager = require('./managers/authorManager')(dbManager);
-const authorRouter = require('./routers/authorRouter')(
-    express.Router(),
-    authorManager,
-    authorYupValidationHandler,
-    apiLogger.responseLogger
-);
+const authorRouter = require('./api/authors/infrastucture/authorRouter')({
+    router: express.Router(),
+    logger: apiLogger.responseLogger,
+    db,
+});
 
-const userSchemaRules = require('./schema-rules/userSchemaRules');
-const { userYupValidationHandler } =
-    require('./schema-validators/userValidators')(userSchemaRules);
-const userManager = require('./managers/userManager')(
-    dbManager,
-    passwordManager
-);
-const userRouter = require('./routers/userRouter')(
-    express.Router(),
-    userManager,
-    userYupValidationHandler,
-    apiLogger.responseLogger
-);
-
-const sessionSchemaRules = require('./schema-rules/sessionSchemaRules');
-const { sessionYupValidationHandler } =
-    require('./schema-validators/sessionValidators')(sessionSchemaRules);
-const sessionManager = require('./managers/sessionManager')(
-    dbManager,
+const userRouter = require('./api/users/infrastucture/userRouter')({
+    router: express.Router(),
+    logger: apiLogger.responseLogger,
+    db,
     passwordManager,
-    config.tokenSign
-);
-const sessionRouter = require('./routers/sessionRouter')(
-    express.Router(),
-    sessionManager,
-    sessionYupValidationHandler,
-    apiLogger.responseLogger
-);
+});
 
+const sessionRouter = require('./api/sessions/infrastucture/sessionRouter')({
+    router: express.Router(),
+    logger: apiLogger.responseLogger,
+    db,
+    passwordManager,
+});
+
+const corsOptions = config.corsConfig;
 const app = express();
 app.use(helmet());
 app.use(cors(corsOptions));
@@ -85,6 +56,7 @@ app.use(config.articlesPath, articleRouter);
 app.use(config.authorsPath, authorRouter);
 app.use(config.usersPath, userRouter);
 app.use(config.sessionsPath, sessionRouter);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.get(config.crashPath, () => process.exit(0));
 
 try {
@@ -100,8 +72,7 @@ try {
             );
         });
     } else {
-        dbManager
-            .run()
+        db.run()
             .then(() => app.listen(config.port, () => console.log('iniciado')))
             .catch((err) => console.error(err));
         console.log(`Worker ${process.pid} started`);

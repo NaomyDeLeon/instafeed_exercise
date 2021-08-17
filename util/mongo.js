@@ -99,22 +99,16 @@ const removeAll = async (collection, ids) => {
     return result;
 };
 
-const update = async (
-    collection,
-    filters,
-    newValues = undefined,
-    addToSet = undefined,
-    pullFromSet = undefined
-) => {
+const update = async (collection, config) => {
     const fieldsToUpdate = {};
-    if (newValues) fieldsToUpdate.$set = newValues;
-    if (addToSet) fieldsToUpdate.$addToSet = addToSet;
-    if (pullFromSet) fieldsToUpdate.$pull = pullFromSet;
+    if (config.newValues) fieldsToUpdate.$set = config.newValues;
+    if (config.add) fieldsToUpdate.$addToSet = config.add;
+    if (config.pull) fieldsToUpdate.$pull = config.pull;
     const result = await execute(() =>
         client
             .db()
             .collection(collection)
-            .updateOne(filters, fieldsToUpdate)
+            .updateOne(config.filters, fieldsToUpdate)
             .then(() => {
                 return { success: true };
             })

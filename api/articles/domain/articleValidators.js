@@ -1,17 +1,17 @@
-const JSONvalidator = require('../util/validation');
+const JSONvalidator = require('../../../util/validation');
 
 let schemaRules;
-const sessionValidationHandler = async (sessionJSON) => {
+const articleValidator = async (articleJSON) => {
     const result = await JSONvalidator.validateManually(
-        sessionJSON,
+        articleJSON,
         schemaRules.manual
     );
     return result;
 };
 
-const sessionYupValidationHandler = async (sessionJSON) => {
+const articleYupValidator = async (articleJSON) => {
     const result = await JSONvalidator.validateWithYup(
-        sessionJSON,
+        articleJSON,
         schemaRules.yup
     );
     return result;
@@ -20,7 +20,7 @@ const sessionYupValidationHandler = async (sessionJSON) => {
 module.exports = (rules) => {
     schemaRules = rules;
     return {
-        sessionYupValidationHandler,
-        sessionValidationHandler,
+        articleYupValidator,
+        articleValidator,
     };
 };
