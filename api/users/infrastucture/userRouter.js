@@ -1,29 +1,28 @@
 const rootPath = '';
 const singleUserPath = '/:id';
-let db;
-let passwordManager;
-let logger;
-
 const schema = require('../domain/userSchemaRules');
-const { userYupValidator } = require('../domain/userValidators')(schema);
-const repository = require('../domain/userRepository')({
-    db,
-    passwordManager,
-});
-const controller = require('../application/userController')({
-    validator: userYupValidator,
-    repository,
-    logger,
-});
+const validators = require('../domain/userValidators');
+const repository = require('../domain/userRepository');
+const controller = require('../application/userController');
 
 module.exports = (config) => {
-    passwordManager = config.passwordManager;
-    db = config.db;
-    logger = config.logger;
+    const { passwordManager } = config;
+    const { db } = config;
+    const { logger } = config;
     const { router } = config;
-    router.get(rootPath, controller.getUsers);
-    router.get(singleUserPath, controller.findUser);
-    router.post(rootPath, controller.createUser);
-    router.delete(singleUserPath, controller.deleteUser);
+    const validator = validators(schema).userYupValidator;
+    const userRepository = repository({
+        db,
+        passwordManager,
+    });
+    const userController = controller({
+        validator,
+        repository: userRepository,
+        logger,
+    });
+    router.get(rootPath, userController.getUsers);
+    router.get(singleUserPath, userController.findUser);
+    router.post(rootPath, userController.createUser);
+    router.delete(singleUserPath, userController.deleteUser);
     return router;
 };

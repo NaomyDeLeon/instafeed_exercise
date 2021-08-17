@@ -1,25 +1,25 @@
 const rootPath = '';
 const singleAuthorPath = '/:id';
-let db;
-let logger;
-
 const schema = require('../domain/authorSchemaRules');
-const { authorYupValidator } = require('../domain/authorValidators')(schema);
-const repository = require('../domain/authorRepository')({ db });
-const controller = require('../application/authorController')({
-    validator: authorYupValidator,
-    repository,
-    logger,
-});
+const validators = require('../domain/authorValidators');
+const repository = require('../domain/authorRepository');
+const controller = require('../application/authorController');
 
 module.exports = (config) => {
-    db = config.db;
-    logger = config.logger;
+    const { db } = config;
+    const { logger } = config;
     const { router } = config;
-    router.get(rootPath, controller.getAuthors);
-    router.get(singleAuthorPath, controller.findAuthor);
-    router.post(rootPath, controller.createAuthor);
-    router.delete(singleAuthorPath, controller.deleteAuthor);
-    router.put(singleAuthorPath, controller.updateAuthor);
+    const validator = validators(schema).authorYupValidator;
+    const authorRepository = repository({ db });
+    const authorController = controller({
+        validator,
+        repository: authorRepository,
+        logger,
+    });
+    router.get(rootPath, authorController.getAuthors);
+    router.get(singleAuthorPath, authorController.findAuthor);
+    router.post(rootPath, authorController.createAuthor);
+    router.delete(singleAuthorPath, authorController.deleteAuthor);
+    router.put(singleAuthorPath, authorController.updateAuthor);
     return router;
 };

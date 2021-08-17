@@ -1,30 +1,30 @@
 const rootPath = '';
 const singleArticlePath = '/:id';
-let db;
-let redis;
-let logger;
-
 const schema = require('../domain/articleSchemaRules');
-const events = require('../../events/articleEventsManager')(redis);
-const { articleYupValidator } = require('../domain/articleValidators')(schema);
-const repository = require('../domain/articleRepository')({ db, events });
-const controller = require('../application/articleController')({
-    validator: articleYupValidator,
-    repository,
-    logger,
-    redis,
-});
+const events = require('../../events/articleEventsManager');
+const validators = require('../domain/articleValidators');
+const repository = require('../domain/articleRepository');
+const controller = require('../application/articleController');
 
 module.exports = (config) => {
-    redis = config.redis;
-    db = config.mongo;
-    logger = config.logger;
+    const { redis } = config;
+    const { db } = config;
+    const { logger } = config;
     const { router } = config;
-    router.get(rootPath, controller.getArticles);
-    router.post(rootPath, controller.createArticle);
-    router.get(singleArticlePath, controller.findArticle);
-    router.delete(singleArticlePath, controller.deleteArticle);
-    router.put(singleArticlePath, controller.updateArticle);
-    router.patch(singleArticlePath, controller.updateArticlePartially);
+    const validator = validators(schema).articleYupValidator;
+    const articleEvents = events(redis);
+    const articleRepository = repository({ db, articleEvents });
+    const articleController = controller({
+        validator,
+        repository: articleRepository,
+        logger,
+        redis,
+    });
+    router.get(rootPath, articleController.getArticles);
+    router.post(rootPath, articleController.createArticle);
+    router.get(singleArticlePath, articleController.findArticle);
+    router.delete(singleArticlePath, articleController.deleteArticle);
+    router.put(singleArticlePath, articleController.updateArticle);
+    router.patch(singleArticlePath, articleController.updateArticlePartially);
     return router;
 };
