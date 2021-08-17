@@ -3,50 +3,50 @@ const yup = require('yup');
 const httpsRegex = new RegExp('^(https)://', 'i');
 const sourceTypes = ['ARTICLE', 'BLOG', 'TWEET', 'NEWSPAPER'];
 
-function valueExist(value) {
-    return value !== undefined && value !== '' && value !== null;
-}
-function validateId(value) {
+const valueExist = (value) =>
+    value !== undefined && value !== '' && value !== null;
+
+const validateId = (value) => {
     if (!valueExist(value)) return 'Id is required';
     if (typeof value !== 'string') return 'Id must be string';
     if (value.length !== 36) return 'Id length must be 36';
     return null;
-}
-function validateTitle(value) {
+};
+const validateTitle = (value) => {
     if (!valueExist(value)) return 'Title is required';
     if (typeof value !== 'string') return 'Title must be string';
     if (value.length > 255) return 'Title length must be 255 or lower';
     return null;
-}
+};
 
-function validateKeywords(value) {
+const validateKeywords = (value) => {
     if (value === undefined || value.length <= 0)
         return 'At least 1 Keyword is necessary';
     if (!Array.isArray(value)) return 'Keywords must be an Array';
     if (value.length > 3) return 'Max keywords length is 3';
     return null;
-}
-function validateAuthor(value) {
+};
+const validateAuthor = (value) => {
     if (!valueExist(value)) return 'Author is necessary';
     if (typeof value !== 'string') return 'Author field must be string';
     if (value.length > 100) return 'Author length must be 100 or lower';
     return null;
-}
-function validateReadMins(value) {
+};
+const validateReadMins = (value) => {
     if (value === undefined) return 'Read mins field is required';
     if (typeof value !== 'number') return 'Read mins must be type number';
     if (value <= 0) return 'Read mins must be 1 or higher';
     if (value > 20) return 'Read mins must be 20 or lower';
     return null;
-}
-function validateSource(value) {
+};
+const validateSource = (value) => {
     if (!valueExist(value)) return 'Source field is required';
     if (!sourceTypes.includes(value))
         return `Source field value must be one of these ${sourceTypes}`;
     return null;
-}
+};
 
-function validateModifiedAt(value) {
+const validateModifiedAt = (value) => {
     if (value === undefined || value === null || value === '')
         return 'ModifiedAt field is required';
     try {
@@ -64,9 +64,9 @@ function validateModifiedAt(value) {
         return 'ModifiedAt Invalid date format is mm/dd/yyyy';
     }
     return null;
-}
+};
 
-function validatePublishedAt(value) {
+const validatePublishedAt = (value) => {
     if (value === undefined || value === '') return null;
     try {
         const receivedDate = new Date(value);
@@ -83,9 +83,9 @@ function validatePublishedAt(value) {
         return 'PublishedAt Invalid date format is mm/dd/yyyy';
     }
     return null;
-}
+};
 
-function validateURL(value, publishedAt) {
+const validateURL = (value, publishedAt) => {
     if (
         (publishedAt === null || publishedAt === '') &&
         (value === null || value === '')
@@ -95,20 +95,20 @@ function validateURL(value, publishedAt) {
     if (!value.startsWith('https://'))
         return 'URL field must start with https://';
     return null;
-}
+};
 
 const articleSchemaManualRules = {
-    id: { rule: (value) => validateId(value) },
-    title: { rule: (value) => validateTitle(value) },
-    modifiedAt: { rule: (value) => validateModifiedAt(value) },
-    publishedAt: { rule: (value) => validatePublishedAt(value) },
-    keywords: { rule: (value) => validateKeywords(value) },
-    author: { rule: (value) => validateAuthor(value) },
-    readMins: { rule: (value) => validateReadMins(value) },
-    source: { rule: (value) => validateSource(value) },
+    id: { rule: validateId },
+    title: { rule: validateTitle },
+    modifiedAt: { rule: validateModifiedAt },
+    publishedAt: { rule: validatePublishedAt },
+    keywords: { rule: validateKeywords },
+    author: { rule: validateAuthor },
+    readMins: { rule: validateReadMins },
+    source: { rule: validateSource },
     url: {
         dependencyField: 'publishedAt',
-        dependencyRule: (value, dependency) => validateURL(value, dependency),
+        dependencyRule: validateURL,
     },
 };
 const articleSchemaYUPRules = yup.object().shape({

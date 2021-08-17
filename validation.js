@@ -1,63 +1,58 @@
-async function validateWithYup(jsonObject, jsonRules) {
-    try {
-        const result = await jsonRules
-            .validate(jsonObject, { abortEarly: false })
-            .catch((err) => err);
-        if (result.errors) {
-            console.log(result.errors);
-            return false;
-        }
-        console.log('Validation passed');
-        return true;
-    } catch (err) {
-        console.log(err);
-        return false;
-    }
-}
+const yup = async (object, rules) => {
+    const yupConfig = { abortEarly: false };
+    const result = await rules.validate(object, yupConfig).catch((err) => err);
+    if (result.errors) return result.errors;
+    return undefined;
+};
 
-function validate(jsonObject, jsonRules) {
-    const errors = [];
-    let jsonIsValid = true;
-    try {
-        Object.keys(jsonRules).forEach((jsonKey) => {
-            const { rule } = jsonRules[jsonKey];
-            const { dependencyRule } = jsonRules[jsonKey];
-            const value = jsonObject[jsonKey];
-            let validationResult;
+const manually = async (object, rules) => {
+    const result = await new Promise((resolve) => {
+        const errors = [];
+        Object.keys(rules).forEach((jsonKey) => {
+            const { rule } = rules[jsonKey];
+            const { dependencyRule } = rules[jsonKey];
+            const value = object[jsonKey];
             if (rule) {
-                validationResult = rule(value);
-                if (validationResult !== null) {
-                    jsonIsValid = false;
-                    errors.push(validationResult);
-                }
+                const validationResult = rule(value);
+                if (validationResult !== null) errors.push(validationResult);
             }
             if (dependencyRule) {
-                const { dependencyField } = jsonRules[jsonKey];
-                validationResult = dependencyRule(
+                const { dependencyField } = rules[jsonKey];
+                const validationResult = dependencyRule(
                     value,
-                    jsonObject[dependencyField]
+                    object[dependencyField]
                 );
-                if (validationResult !== null) {
-                    jsonIsValid = false;
-                    errors.push(validationResult);
-                }
+                if (validationResult !== null) errors.push(validationResult);
             }
         });
-        if (!jsonIsValid) {
-            console.log(errors);
-            return false;
-        }
-        console.log('Validation passed');
-        return true;
-    } catch (err) {
-        console.log(err);
+        resolve(errors);
+    });
+    return result;
+};
+
+const evaluateResult = (errors) => {
+    if (errors && errors.length > 0) {
+        console.error('Validation failed', errors);
         return false;
     }
-}
+    console.info('Validation passed');
+    return true;
+};
+
+const validate = async (object, rules, validator) => {
+    try {
+        const errors = await validator(object, rules);
+        const result = evaluateResult(errors);
+        return result;
+    } catch (err) {
+        console.error(err);
+        return false;
+    }
+};
 
 const JSONvalidator = {
-    validate,
-    validateWithYup,
+    validateManually: (object, rules) => validate(object, rules, manually),
+    validateWithYup: (object, rules) => validate(object, rules, yup),
 };
 
 module.exports = JSONvalidator;
