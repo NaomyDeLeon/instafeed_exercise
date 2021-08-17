@@ -2,6 +2,7 @@ let validator;
 let repository;
 let logger;
 let redis;
+let events;
 
 const getArticles = async (req, res) => {
     const articles = await repository.getArticles();
@@ -16,6 +17,7 @@ const findArticle = (req, res) => {
     redis.get(`article-${articleId}`, async (err, storedArticle) => {
         if (err) logger.err(err);
         if (storedArticle !== null) {
+            logger.log('INFO', 'returning from cache');
             res.send(JSON.parse(storedArticle));
         } else {
             const article = await repository.findArticle(articleId);
@@ -35,8 +37,10 @@ const createArticle = async (req, res) => {
     const validation = await validator(req.body);
     if (validation.isValid) {
         const creation = await repository.createArticle(req.body);
-        if (creation.success) res.status(201);
-        else res.status(400);
+        if (creation.success) {
+            events.emit('ArticleCreated', { data: req.body });
+            res.status(201);
+        } else res.status(400);
         res.send(creation);
         logger(req, res, creation);
     } else {
@@ -100,6 +104,7 @@ module.exports = (config) => {
     repository = config.repository;
     logger = config.logger;
     redis = config.redis;
+    events = config.events;
     return {
         getArticles,
         findArticle,

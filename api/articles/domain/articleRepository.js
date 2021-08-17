@@ -1,5 +1,4 @@
 let db;
-let events;
 const collection = 'articles';
 const authorCollection = 'authors';
 const articleStructure = {
@@ -38,7 +37,6 @@ const createArticle = async (article) => {
         const newArticle = { articles: fieldsToInsert._id };
         const result = await db.insert(collection, fieldsToInsert);
         if (result.success) {
-            events.emit('ArticleCreated', { data: fieldsToInsert });
             await db.update(authorCollection, {
                 filters: author.data[0],
                 add: newArticle,
@@ -101,7 +99,6 @@ const updateArticlePartially = async (articleId, newValues) => {
 
 module.exports = (config) => {
     db = config.db;
-    events = config.events;
     return {
         getArticles,
         findArticle,
