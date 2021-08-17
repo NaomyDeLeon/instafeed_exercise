@@ -19,7 +19,7 @@ module.exports = (config) => {
         repository: articleRepository,
         logger,
         redis,
-        event: articleEvents,
+        events: articleEvents,
     });
     router.get(rootPath, articleController.getArticles);
     router.post(rootPath, articleController.createArticle);
