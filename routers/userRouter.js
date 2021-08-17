@@ -1,10 +1,11 @@
 const rootPath = '';
 const singleUserPath = '/:id';
 
-module.exports = (router, manager, validator) => {
+module.exports = (router, manager, validator, logger) => {
     router.get(rootPath, async (req, res) => {
         const users = await manager.getUsers();
         res.send(users);
+        logger(req, res, users);
         res.end();
     });
 
@@ -16,19 +17,22 @@ module.exports = (router, manager, validator) => {
             res.status(404);
             res.send(search);
         }
+        logger(req, res, search);
         res.end();
     });
 
     router.post(rootPath, async (req, res) => {
-        const validation = await validator(req.body, 'web');
+        const validation = await validator(req.body);
         if (validation.isValid) {
             const creation = await manager.createUser(req.body);
             if (creation.success) res.status(201);
             else res.status(400);
             res.send(creation);
+            logger(req, res, creation);
         } else {
             res.status(400);
             res.send(validation.errors);
+            logger(req, res, validation);
         }
         res.end();
     });
@@ -41,6 +45,7 @@ module.exports = (router, manager, validator) => {
             res.status(404);
             res.send(deletion);
         }
+        logger(req, res, deletion);
         res.end();
     });
 

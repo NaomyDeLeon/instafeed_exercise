@@ -1,3 +1,5 @@
+const logger = require('./logger');
+
 const yup = async (object, rules) => {
     const yupConfig = { abortEarly: false };
     const result = await rules.validate(object, yupConfig).catch((err) => err);
@@ -32,10 +34,10 @@ const manually = async (object, rules) => {
 
 const evaluateResult = (errors) => {
     if (errors && errors.length > 0) {
-        console.error('Validation failed', errors);
+        logger.error('Validation failed', errors);
         return false;
     }
-    console.info('Validation passed');
+    logger.info('Validation passed');
     return true;
 };
 
@@ -45,7 +47,7 @@ const validate = async (object, rules, validator) => {
         const isValid = evaluateResult(errors);
         return { isValid, errors };
     } catch (err) {
-        console.error(err);
+        logger.error(err);
         return false;
     }
 };
