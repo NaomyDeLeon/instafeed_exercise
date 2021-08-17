@@ -8,7 +8,7 @@ const crashPath = process.env.CRASH_PATH || '/crash';
 const tokenSign = process.env.TOKEN_SIGN || 'welcome1';
 const defaultRedisURL =
     process.env.DEFAULT_REDIS_URL ||
-    'redis://:pfc5464b293b6b7a81e5752c352ffa006f288803ff2556c32f6eec1b0d288ab6a@ec2-44-195-240-40.compute-1.amazonaws.com:16529';
+    'redis://:p0bba49d3a32583e43bd4bef3422faf0fe0b4a45cb554882985a46258613d28e2@ec2-50-19-125-212.compute-1.amazonaws.com:18139';
 const defaultMongoURI =
     process.env.DEFAULT_MONGO_URL ||
     `mongodb+srv://instafeedclient:${escape(
