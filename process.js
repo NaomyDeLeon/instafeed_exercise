@@ -1,39 +1,42 @@
 const fs = require('fs');
+const async = require('async');
 const schemaRules = require('./articleSchemaRules');
 const JSONvalidator = require('./validation');
 
 const encoding = 'utf8';
-const fileLocation = './article.json';
+const folderPath = './articles';
 
 const getStringToSave = (fileName, newContent) => {
+    let parsedString = JSON.stringify(newContent);
+    if (!Array.isArray(newContent))
+        parsedString = `${JSON.stringify(parsedString)}`;
     try {
         const fileContent = fs.readFileSync(fileName, { encoding });
-        const jsonDB = JSON.parse(fileContent);
-        if (jsonDB.length === 0) {
-            return `[${JSON.stringify(newContent)}]`;
-        }
-        jsonDB.push(newContent);
+        let jsonDB = JSON.parse(fileContent);
+        if (jsonDB.length === 0) return parsedString;
+        if (Array.isArray(newContent)) jsonDB = jsonDB.concat(newContent);
+        else jsonDB.push(newContent);
         return JSON.stringify(jsonDB);
     } catch (err) {
-        return `[${JSON.stringify(newContent)}]`;
+        return parsedString;
     }
 };
 
-const writeOnFile = async (fileName, content) => {
-    console.info(`Writing on ${fileName}`, content);
+const writeOnFile = async (fileName, content, validatorName) => {
+    console.info(`${validatorName} - Writing on ${fileName}`);
     const line = getStringToSave(fileName, content);
-    try {
-        // flag a para permitir concatenar o crear el archivo en caso de no existir
-        await fs.promises
-            .writeFile(fileName, line, { encoding })
-            .then(() => console.info('file written'));
-    } catch (err) {
-        console.err(err);
-    }
+    // flag a para permitir concatenar o crear el archivo en caso de no existir
+    await fs.promises
+        .writeFile(fileName, line, { encoding })
+        .then(() => {
+            const msg = `${validatorName} - file ${fileName} written`;
+            console.info(msg);
+        })
+        .catch((err) => console.err(err));
 };
 
-const validationHandler = async (articleJSON) => {
-    console.info('Starting validation with manual handler');
+const validationHandler = async (articleJSON, filename) => {
+    console.info(`Starting validation with manual handler - file ${filename}`);
     const articleIsValid = await JSONvalidator.validateManually(
         articleJSON,
         schemaRules.manual
@@ -41,8 +44,8 @@ const validationHandler = async (articleJSON) => {
     return articleIsValid;
 };
 
-const yupValidationHandler = async (articleJSON) => {
-    console.info('Starting validation with yup handler');
+const yupValidationHandler = async (articleJSON, filename) => {
+    console.info(`Starting validation with yup handler - file ${filename}`);
     const articleIsValid = await JSONvalidator.validateWithYup(
         articleJSON,
         schemaRules.yup
@@ -50,42 +53,47 @@ const yupValidationHandler = async (articleJSON) => {
     return articleIsValid;
 };
 
-const startJSONValidation = async (jsonValidatorHandler) => {
-    try {
-        const fileContent = fs.readFileSync(fileLocation, encoding);
-        const articleJSON = JSON.parse(fileContent);
-        const articleIsValid = await jsonValidatorHandler(articleJSON);
-        const fileName = articleIsValid ? 'db.json' : 'invalid.json';
-        await writeOnFile(fileName, articleJSON);
-    } catch (error) {
-        console.error(`Error: ${error}`);
-    }
+const configureParallel = (files, validator) => {
+    const executions = [];
+    files.forEach((file) => {
+        console.log(`reading file ${file}`);
+        const parallelExecution = (callback) => {
+            fs.promises
+                .readFile(`${folderPath}/${file}`)
+                .then(async (fileContent) => {
+                    const articleJson = JSON.parse(fileContent);
+                    const isValid = await validator(articleJson, file);
+                    callback(null, { isValid, articleJson });
+                })
+                .catch((err) => console.log(err));
+        };
+        executions.push(parallelExecution);
+    });
+    return executions;
 };
 
-const startJSONValidationWithPromises = async (validatorHandler) => {
+const executeParallel = async (executions, validatorName) => {
+    async.parallel(executions, async (err, results) => {
+        const valids = results
+            .filter((result) => result.isValid)
+            .map((result) => result.articleJson);
+        const invalids = results
+            .filter((result) => !result.isValid)
+            .map((result) => result.articleJson);
+        await writeOnFile('db.json', valids, validatorName);
+        await writeOnFile('invalid.json', invalids, validatorName);
+        if (err) console.log(err);
+        console.log(`${validatorName} finished`);
+    });
+};
+
+const validateAll = (validator) => {
     return fs.promises
-        .readFile(fileLocation, encoding)
-        .then((fileContent) => JSON.parse(fileContent))
-        .then(async (articleJSON) => {
-            return {
-                articleJSON,
-                isValid: await validatorHandler(articleJSON),
-            };
-        })
-        .then(async (articleData) => {
-            const fileName = articleData.isValid ? 'db.json' : 'invalid.json';
-            await writeOnFile(fileName, articleData.articleJSON);
-        })
-        .catch((err) => console.error(`Error: ${err}`));
+        .readdir(folderPath)
+        .then((files) => configureParallel(files, validator))
+        .then((config) => executeParallel(config, validator.name))
+        .catch((err) => console.log(err))
+        .finally(() => console.log('async process launched'));
 };
 
-const startValidations = async () => {
-    await startJSONValidation(validationHandler);
-    await startJSONValidation(yupValidationHandler);
-    console.info('First process finished', 'Launching promises');
-    startJSONValidationWithPromises(yupValidationHandler)
-        .then(() => startJSONValidationWithPromises(validationHandler))
-        .finally(() => console.log('Promises process finished'));
-};
-
-startValidations();
+validateAll(yupValidationHandler).then(() => validateAll(validationHandler));
