@@ -11,6 +11,7 @@ const articleStructure = {
     source: undefined,
     url: undefined,
 };
+
 const getArticles = async () => {
     const articles = await dbManager.findAll(collection);
     if (Array.isArray(articles) && articles.length === 0) return [];
@@ -24,8 +25,14 @@ const findArticle = async (articleId) => {
 };
 
 const createArticle = async (article) => {
-    const results = await dbManager.insert(collection, article);
-    return results;
+    const author = await dbManager.find('authors', { id: article.author });
+    let result = false;
+    if (Array.isArray(author) && author.length > 0) {
+        result = await dbManager.insert(collection, article);
+    } else {
+        return { created: result, errors: 'author does not exist' };
+    }
+    return { created: result };
 };
 
 const deleteArticle = async (articleId) => {

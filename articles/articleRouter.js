@@ -13,9 +13,13 @@ module.exports = (injectedRouter, injectedManager, injectedValidator) => {
         const result = await injectedValidator(req.body, 'web');
         if (result.isValid) {
             const created = await injectedManager.createArticle(req.body);
-            if (created) {
+            if (created.created) {
                 res.status(201);
                 res.send({ msg: 'success' });
+                res.end();
+            } else {
+                res.status(400);
+                res.send(created);
                 res.end();
             }
         }
