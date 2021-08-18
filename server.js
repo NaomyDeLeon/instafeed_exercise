@@ -6,9 +6,9 @@ const helmet = require('helmet');
 const redisClient = require('redis');
 const swaggerUi = require('swagger-ui-express');
 const config = require('./configs/default');
-const passwordManager = require('./util/passwordManager');
 const swaggerDocument = require('./swagger.json');
 const apiLogger = require('./api/middlewares/apiLogger');
+const passwordManager = require('./util/passwordManager')(config.tokenSign);
 const db = require('./util/mongo')(config.defaultMongoURI);
 
 const redis = redisClient.createClient({ url: config.defaultRedisURL });
