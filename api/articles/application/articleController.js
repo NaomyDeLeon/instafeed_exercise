@@ -15,7 +15,7 @@ const findArticle = (req, res) => {
     const articleId = req.params.id;
     res.set('Cache-control', 'public, max-age=3600');
     redis.get(`article-${articleId}`, async (err, storedArticle) => {
-        if (err) logger.err(err);
+        if (err) logger(req, res, { msg: err });
         if (storedArticle !== null) {
             logger(req, res, { msg: 'returning from cache' });
             res.send(JSON.parse(storedArticle));

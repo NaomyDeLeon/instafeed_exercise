@@ -1,44 +1,13 @@
 const assert = require('assert');
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
 const request = require('supertest');
-const config = require('../configs/default');
-const passwordManager = require('../util/passwordManager');
-const apiLogger = require('../api/middlewares/apiLogger');
-
-const corsOptions = config.corsConfig;
-const { tokenValidator } = require('../api/middlewares/security')(
-    config.tokenSign
-);
-const db = require('../util/mongo')(config.defaultMongoURI);
-
-const authorRouter = require('../api/authors/infrastucture/authorRouter')({
-    router: express.Router(),
-    logger: apiLogger.responseLogger,
-    db,
-});
-
-const sessionRouter = require('../api/sessions/infrastucture/sessionRouter')({
-    router: express.Router(),
-    logger: apiLogger.responseLogger,
-    db,
-    passwordManager,
-});
-
-const app = express();
-app.use(helmet());
-app.use(cors(corsOptions));
-app.use(express.json());
-app.use(tokenValidator);
-app.use(config.authorsPath, authorRouter);
-app.use(config.sessionsPath, sessionRouter);
+const { app } = require('../server');
 
 const user = { username: 'naomi.deleon', password: 'welcome1' };
 const newAuthor = { name: 'testing' };
 const newModifiredNewAuthor = { name: 'testing change' };
 let token;
 let newAuthorId;
+
 /* eslint-disable no-undef */
 const loginUser = () => {
     return (done) => {

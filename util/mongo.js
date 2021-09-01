@@ -3,8 +3,11 @@ const { MongoClient } = require('mongodb');
 let client;
 
 const configureClient = (mongoURI) => {
-    const uri = mongoURI;
-    client = new MongoClient(uri);
+    try {
+        client = new MongoClient(mongoURI);
+    } catch (err) {
+        console.err(err);
+    }
 };
 
 async function run() {
