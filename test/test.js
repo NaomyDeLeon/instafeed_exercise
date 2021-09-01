@@ -1,11 +1,11 @@
 const assert = require('assert');
-const articleSchemaRules = require('../schema-rules/articleSchemaRules');
+const articleSchemaRules = require('../api/articles/domain/articleSchemaRules');
 const { articleYupValidationHandler, articleValidationHandler } =
-    require('../schema-validators/articleValidators')(articleSchemaRules);
+    require('../api/articles/domain/articleValidators')(articleSchemaRules);
 
-const authorSchemaRules = require('../schema-rules/authorSchemaRules');
+const authorSchemaRules = require('../api/authors/domain/authorSchemaRules');
 const { authorYupValidationHandler, authorValidationHandler } =
-    require('../schema-validators/authorValidators')(authorSchemaRules);
+    require('../api/authors/domain/authorValidators')(authorSchemaRules);
 
 const validArticle = {
     id: '4a71a18a-b31e-427e-84f3-127a1273fxxa',

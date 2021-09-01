@@ -2,10 +2,10 @@
   "name": "instafeed_exercise",
   "version": "1.0.0",
   "description": "Node Js High Seniority exercise",
-  "main": "index.js",
+  "main": "runner.js",
   "scripts": {
     "lint": "eslint .  --ext .js",
-    "nodemon": "npx nodemon --watch . server.js",
+    "nodemon": "npx nodemon --watch . runner.js",
     "test": "mocha",
     "coverage": "nyc mocha"
   },
@@ -38,6 +38,7 @@
   "dependencies": {
     "async": "^3.2.1",
     "bcrypt": "^5.0.1",
+    "config": "^3.3.6",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "helmet": "^4.6.0",

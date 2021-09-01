@@ -1,0 +1,29 @@
+{
+    "env": {
+        "origin": "http: 127.0.0.1",
+        "port": 8080,
+        "articlesPath": "/articles",
+        "authorsPath": "/authors",
+        "usersPath": "/users",
+        "sessionsPath": "/sessions",
+        "crashPath": "/crash",
+        "tokenSign": "welcome1",
+        "defaultRedisURL": "redis://:p0bba49d3a32583e43bd4bef3422faf0fe0b4a45cb554882985a46258613d28e2@ec2-50-19-125-212.compute-1.amazonaws.com:18139",
+        "defaultMongoURI": "mongodb+srv://instafeedclient:D.vX%23naGq6aMxEy@instafeed-cluster.4xcj3.mongodb.net/instafeed?writeConcern=majority&retryWrites=true",
+        "corsConfig": {
+            "origin": [
+                "origin"
+            ],
+            "methods": [
+                "GET",
+                "PUT",
+                "POST",
+                "DELETE",
+                "PATCH"
+            ],
+            "preflightContinue": false,
+            "optionsSuccessStatus": 200,
+            "credentials": true
+        }
+    }
+}
